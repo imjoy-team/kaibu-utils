@@ -8,15 +8,16 @@ from PIL import Image, ImageDraw
 from skimage import draw as skimage_draw
 
 
-def load_geojson(data_json, image_size):
-
+def load_features(features, image_size):
     # Loop over list and create simple dictionary & get size of annotations
     annot_dict = {}
     roi_size_all = {}
 
     skipped = []
 
-    for feat_idx, feat in enumerate(data_json["features"]):
+    if isinstance(features, dict) and "features" in features.keys():
+        features = features["features"]
+    for feat_idx, feat in enumerate(features):
 
         if feat["geometry"]["type"] not in ["Polygon", "LineString"]:
             skipped.append(feat["geometry"]["type"])
@@ -221,12 +222,12 @@ def generate_binary_masks(
     return mask_dict
 
 
-def geojson_to_mask(
-    geojson_object,
+def features_to_mask(
+    features,
     image_size,
 ):
     # Read annotation:  Correct class has been selected based on annot_type
-    annot_dict_all, roi_size_all, image_size = load_geojson(geojson_object, image_size)
+    annot_dict_all, roi_size_all, image_size = load_features(features, image_size)
 
     annot_types = set(
         annot_dict_all[k]["properties"]["label"] for k in annot_dict_all.keys()

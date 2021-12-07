@@ -9,10 +9,10 @@ DESCRIPTION = "A set of utility functions for working with GeoJSON annotations i
 ROOT_DIR = Path(__file__).parent.resolve()
 README_FILE = ROOT_DIR / "README.md"
 LONG_DESCRIPTION = README_FILE.read_text(encoding="utf-8")
-VERSION_FILE = ROOT_DIR / "kaibu-geojson-utils" / "VERSION"
+VERSION_FILE = ROOT_DIR / "kaibu_geojson_utils" / "VERSION"
 VERSION = json.loads(VERSION_FILE.read_text())["version"]
 
-REQUIRES = []
+REQUIRES = ["Pillow", "geojson", "scikit-image"]
 
 setup(
     name="kaibu-geojson-utils",
