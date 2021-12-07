@@ -1,4 +1,4 @@
-"""Implement kaibu-geojson-utils."""
+"""Implement kaibu-utils."""
 import numpy as np
 from geojson import Polygon as geojson_polygon
 from geojson import Feature, FeatureCollection, dumps
@@ -15,10 +15,7 @@ def load_features(features, image_size):
 
     skipped = []
 
-    if isinstance(features, dict) and "features" in features.keys():
-        features = features["features"]
     for feat_idx, feat in enumerate(features):
-
         if feat["geometry"]["type"] not in ["Polygon", "LineString"]:
             skipped.append(feat["geometry"]["type"])
             continue
@@ -226,6 +223,12 @@ def features_to_mask(
     features,
     image_size,
 ):
+    if isinstance(features, dict) and "features" in features.keys():
+        features = features["features"]
+
+    if len(features) == 0:
+        return np.zeros(image_size[:2], dtype="uint16")
+
     # Read annotation:  Correct class has been selected based on annot_type
     annot_dict_all, roi_size_all, image_size = load_features(features, image_size)
 
@@ -250,11 +253,13 @@ def features_to_mask(
             obj_size_rem=500,
             save_indiv=True,
         )
+
     return np.flipud(mask_dict["labels"])
 
 
 def _convert_mask(img_mask, label=None):
     # for img_mask, for cells on border, should make sure on border pixels are # set to 0
+    img_mask = img_mask.copy()
     shape_x, shape_y = img_mask.shape
     shape_x, shape_y = shape_x - 1, shape_y - 1
     img_mask[0, :] = img_mask[:, 0] = img_mask[shape_x, :] = img_mask[:, shape_y] = 0

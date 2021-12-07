@@ -1,12 +1,12 @@
-# kaibu-geojson-utils
+# kaibu-utils
 
-A set of utility functions for working with GeoJSON annotations in [Kaibu](https://kaibu.org).
+A set of utility functions for working with [Kaibu](https://kaibu.org).
 
 ## Create a new repository
 
 - Create a [new repository](https://github.com/new) and select `imjoy-team/imjoy-python-template` as template repository.
 - Clone your new repository.
-- Search and replace all occurrences of `kaibu-geojson-utils`. Replace `kaibu-geojson-utils` with the name of the new repository.
+- Search and replace all occurrences of `kaibu-utils`. Replace `kaibu-utils` with the name of the new repository.
 - Add package requirements in `install_requires` in [`setup.py`](setup.py) and in [`requirements.txt`](requirements.txt) as needed.
 - Update this `README.md` with a description and instructions for your new repository.
 
@@ -57,7 +57,7 @@ It will also install this package in development mode, so that code changes are 
 - Run pytest and calculate coverage for the package.
 
   ```sh
-  pytest --cov-report term-missing --cov=kaibu-geojson-utils
+  pytest --cov-report term-missing --cov=kaibu-utils
   ```
 
 - Continuous integration is by default supported via [GitHub actions](https://help.github.com/en/actions). GitHub actions is free for public repositories and comes with 2000 free Ubuntu build minutes per month for private repositories.

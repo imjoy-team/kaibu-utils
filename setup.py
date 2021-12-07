@@ -1,23 +1,23 @@
-"""Set up the kaibu-geojson-utils package."""
+"""Set up the kaibu-utils package."""
 import json
 from pathlib import Path
 
 from setuptools import find_packages, setup
 
-DESCRIPTION = "A set of utility functions for working with GeoJSON annotations in [Kaibu](https://kaibu.org)."
+DESCRIPTION = "A set of utility functions for working with Kaibu(https://kaibu.org)."
 
 ROOT_DIR = Path(__file__).parent.resolve()
 README_FILE = ROOT_DIR / "README.md"
 LONG_DESCRIPTION = README_FILE.read_text(encoding="utf-8")
-VERSION_FILE = ROOT_DIR / "kaibu_geojson_utils" / "VERSION"
+VERSION_FILE = ROOT_DIR / "kaibu_utils" / "VERSION"
 VERSION = json.loads(VERSION_FILE.read_text())["version"]
 
 REQUIRES = ["Pillow", "geojson", "scikit-image"]
 
 setup(
-    name="kaibu-geojson-utils",
+    name="kaibu-utils",
     version=VERSION,
-    url="https://github.com/imjoy-team/kaibu-geojson-utils",
+    url="https://github.com/imjoy-team/kaibu-utils",
     author="ImJoy-Team",
     author_email="imjoy.team@gmail.com",
     packages=find_packages(),
