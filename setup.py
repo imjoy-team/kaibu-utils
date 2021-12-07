@@ -1,23 +1,23 @@
-"""Set up the NEW_PACKAGE package."""
+"""Set up the kaibu-geojson-utils package."""
 import json
 from pathlib import Path
 
 from setuptools import find_packages, setup
 
-DESCRIPTION = "Describe the NEW_PACKAGE."
+DESCRIPTION = "A set of utility functions for working with GeoJSON annotations in [Kaibu](https://kaibu.org)."
 
 ROOT_DIR = Path(__file__).parent.resolve()
 README_FILE = ROOT_DIR / "README.md"
 LONG_DESCRIPTION = README_FILE.read_text(encoding="utf-8")
-VERSION_FILE = ROOT_DIR / "NEW_PACKAGE" / "VERSION"
+VERSION_FILE = ROOT_DIR / "kaibu-geojson-utils" / "VERSION"
 VERSION = json.loads(VERSION_FILE.read_text())["version"]
 
 REQUIRES = []
 
 setup(
-    name="NEW_PACKAGE",
+    name="kaibu-geojson-utils",
     version=VERSION,
-    url="https://github.com/imjoy-team/NEW_PACKAGE",
+    url="https://github.com/imjoy-team/kaibu-geojson-utils",
     author="ImJoy-Team",
     author_email="imjoy.team@gmail.com",
     packages=find_packages(),
