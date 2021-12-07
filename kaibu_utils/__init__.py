@@ -11,14 +11,15 @@ from skimage import measure, morphology
 
 try:
     import pyodide
+
     is_pyodide = True
 except ImportError:
     is_pyodide = False
 
+
 def load_features(features, image_size):
     # Loop over list and create simple dictionary & get size of annotations
     annot_dict = {}
-    roi_size_all = {}
 
     skipped = []
 
@@ -39,21 +40,8 @@ def load_features(features, image_size):
         )
         annot_dict[key_annot]["properties"] = feat["properties"]
 
-        # Store size of regions
-        if not (feat["properties"]["label"] in roi_size_all):
-            roi_size_all[feat["properties"]["label"]] = []
-
-        roi_size_all[feat["properties"]["label"]].append(
-            [
-                annot_dict[key_annot]["pos"][:, 0].max()
-                - annot_dict[key_annot]["pos"][:, 0].min(),
-                annot_dict[key_annot]["pos"][:, 1].max()
-                - annot_dict[key_annot]["pos"][:, 1].min(),
-            ]
-        )
-
     # print("Skipped geometry type(s):", skipped)
-    return annot_dict, roi_size_all, image_size
+    return annot_dict, image_size
 
 
 def generate_binary_masks(
@@ -237,7 +225,7 @@ def features_to_mask(
         return np.zeros(image_size[:2], dtype="uint16")
 
     # Read annotation:  Correct class has been selected based on annot_type
-    annot_dict_all, roi_size_all, image_size = load_features(features, image_size)
+    annot_dict_all, image_size = load_features(features, image_size)
 
     annot_types = set(
         annot_dict_all[k]["properties"]["label"] for k in annot_dict_all.keys()
@@ -337,24 +325,27 @@ def mask_to_features(img_mask, label=None):
     )
     return features
 
+
 async def fetch_image(url, name=None, grayscale=False, transpose=False, size=None):
     if is_pyodide:
         from js import fetch
+
         response = await fetch(url)
         bytes = await response.arrayBuffer()
         bytes = bytes.to_py()
         buffer = io.BytesIO(bytes)
     else:
         import requests
+
         response = requests.get(url)
         buffer = io.BytesIO(response.content)
-    buffer.name = name or url.split('?')[0].split('/')[1]
+    buffer.name = name or url.split("?")[0].split("/")[1]
     image = Image.open(buffer)
     if grayscale:
-        image = image.convert('L')
+        image = image.convert("L")
     if size:
         image = image.resize(size=size)
-    image = np.array(image).astype('float32')
+    image = np.array(image).astype("float32")
     if transpose:
         image = image.transpose(2, 0, 1)
     return image
