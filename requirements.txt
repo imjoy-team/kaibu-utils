@@ -1,3 +1,4 @@
 Pillow
 geojson
 scikit-image
+requests

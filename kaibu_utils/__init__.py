@@ -1,12 +1,19 @@
 """Implement kaibu-utils."""
-import numpy as np
-from geojson import Polygon as geojson_polygon
-from geojson import Feature, FeatureCollection, dumps
-from skimage import measure, morphology
+import io
 
+import numpy as np
+from geojson import Feature, FeatureCollection
+from geojson import Polygon as geojson_polygon
+from geojson import dumps
 from PIL import Image, ImageDraw
 from skimage import draw as skimage_draw
+from skimage import measure, morphology
 
+try:
+    import pyodide
+    is_pyodide = True
+except ImportError:
+    is_pyodide = False
 
 def load_features(features, image_size):
     # Loop over list and create simple dictionary & get size of annotations
@@ -329,3 +336,25 @@ def mask_to_features(img_mask, label=None):
         )
     )
     return features
+
+async def fetch_image(url, name=None, grayscale=False, transpose=False, size=None):
+    if is_pyodide:
+        from js import fetch
+        response = await fetch(url)
+        bytes = await response.arrayBuffer()
+        bytes = bytes.to_py()
+        buffer = io.BytesIO(bytes)
+    else:
+        import requests
+        response = requests.get(url)
+        buffer = io.BytesIO(response.content)
+    buffer.name = name or url.split('?')[0].split('/')[1]
+    image = Image.open(buffer)
+    if grayscale:
+        image = image.convert('L')
+    if size:
+        image = image.resize(size=size)
+    image = np.array(image).astype('float32')
+    if transpose:
+        image = image.transpose(2, 0, 1)
+    return image

@@ -12,7 +12,7 @@ LONG_DESCRIPTION = README_FILE.read_text(encoding="utf-8")
 VERSION_FILE = ROOT_DIR / "kaibu_utils" / "VERSION"
 VERSION = json.loads(VERSION_FILE.read_text())["version"]
 
-REQUIRES = ["Pillow", "geojson", "scikit-image"]
+REQUIRES = ["Pillow", "geojson", "scikit-image", "requests;platform_system!='Emscripten'"]
 
 setup(
     name="kaibu-utils",
