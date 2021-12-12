@@ -8,6 +8,8 @@ from geojson import dumps
 from PIL import Image, ImageDraw
 from skimage import draw as skimage_draw
 from skimage import measure, morphology
+from scipy import ndimage as ndi
+from skimage.morphology import remove_small_objects, watershed
 
 try:
     import pyodide
@@ -214,9 +216,48 @@ def generate_binary_masks(
     return mask_dict
 
 
+
+def generate_border_mask(labels, edge, border_detection_threshold=3):
+    tmp = morphology.dilation(edge, morphology.square(7))
+    # props = measure.regionprops(labels)
+    msk0 = 255 * (labels > 0)
+    msk0 = msk0.astype('uint8')
+
+    msk1 = np.zeros_like(labels, dtype='bool')
+
+    # max_area = np.max([p.area for p in props])
+
+    for y0 in range(labels.shape[0]):
+        for x0 in range(labels.shape[1]):
+            if not tmp[y0, x0]:
+                continue
+            sz = border_detection_threshold
+
+            uniq = np.unique(labels[max(0, y0-sz):min(labels.shape[0], y0+sz+1), max(0, x0-sz):min(labels.shape[1], x0+sz+1)])
+            if len(uniq[uniq > 0]) > 1:
+                msk1[y0, x0] = True
+                msk0[y0, x0] = 0
+
+    msk0 = 255 * (labels > 0)
+    msk0 = msk0.astype('uint8') # cell area
+    msk1 = morphology.binary_closing(msk1)
+    msk1 = 255 * msk1 # cell boundarys
+    msk1 = msk1.astype('uint8')
+
+    msk2 = np.zeros_like(labels, dtype='uint8')
+    msk = np.stack((msk0, msk1, msk2))
+    msk = np.rollaxis(msk, 0, 3)
+
+    # Note: saved as float 16 - to plot has to be converted to float32
+    # To be saved rescaled as 8 bit
+    return msk.astype('float32')
+
+
 def features_to_mask(
     features,
     image_size,
+    mask_type='labels',
+    **kwargs
 ):
     if isinstance(features, dict) and "features" in features.keys():
         features = features["features"]
@@ -241,6 +282,7 @@ def features_to_mask(
         }
         # Create masks
         # Binary - is always necessary to creat other masks
+
         mask_dict = generate_binary_masks(
             annot_dict,
             image_size=image_size,
@@ -248,13 +290,28 @@ def features_to_mask(
             obj_size_rem=500,
             save_indiv=True,
         )
+        if mask_type == 'border':
+            border_mask = generate_border_mask(mask_dict["labels"], mask_dict["edge"], **kwargs)
+            mask_dict["border"] = border_mask
 
-    return np.flipud(mask_dict["labels"])
+    if mask_type == 'labels':
+        return np.flipud(mask_dict["labels"])
+    elif mask_type == 'border':
+        return np.flipud(mask_dict["border"])
 
 
-def _convert_mask(img_mask, label=None):
+def _convert_mask(img_mask, label=None, mask_type="labels"):
     # for img_mask, for cells on border, should make sure on border pixels are # set to 0
     img_mask = img_mask.copy()
+
+    if mask_type == "border":
+        # assumes two channel border mask
+        # the first channel is the filled mask and the second channel is the borders
+        mask = img_mask[:,:, 0]*(1- (1*img_mask[:,:,1]>0))
+        mask = remove_small_objects(mask>0, 8)
+        markers = ndi.label(mask, output=np.uint32)[0]
+        img_mask = watershed(mask, markers, mask=mask, watershed_line=True)
+
     shape_x, shape_y = img_mask.shape
     shape_x, shape_y = shape_x - 1, shape_y - 1
     img_mask[0, :] = img_mask[:, 0] = img_mask[shape_x, :] = img_mask[:, shape_y] = 0
@@ -294,13 +351,13 @@ def _convert_mask(img_mask, label=None):
     return features
 
 
-def mask_to_geojson(img_mask, label=None):
+def mask_to_geojson(img_mask, label=None, mask_type="labels"):
     """
     Args:
       img_mask (numpy array): numpy data, with each object being assigned with a unique uint number
       label (str): like 'cell', 'nuclei'
     """
-    features = _convert_mask(np.flipud(img_mask), label=label)
+    features = _convert_mask(np.flipud(img_mask), label=label, mask_type=mask_type)
     feature_collection = FeatureCollection(
         features, bbox=[0, 0, img_mask.shape[1] - 1, img_mask.shape[0] - 1]
     )
@@ -308,13 +365,13 @@ def mask_to_geojson(img_mask, label=None):
     return geojson_str
 
 
-def mask_to_features(img_mask, label=None):
+def mask_to_features(img_mask, label=None, mask_type="labels"):
     """
     Args:
       img_mask (numpy array): numpy data, with each object being assigned with a unique uint number
       label (str): like 'cell', 'nuclei'
     """
-    features = _convert_mask(np.flipud(img_mask), label=label)
+    features = _convert_mask(np.flipud(img_mask), label=label, mask_type=mask_type)
     features = list(
         map(
             lambda feature: np.array(
