@@ -264,7 +264,7 @@ def generate_border_mask(labels, edge, border_detection_threshold=3):
     return msk.astype("float32")
 
 
-def features_to_mask(features, image_size, mask_type="labels", **kwargs):
+def features_to_mask(features, image_size, mask_type="labels", label="*", **kwargs):
     if isinstance(features, dict) and "features" in features.keys():
         features = features["features"]
 
@@ -275,16 +275,20 @@ def features_to_mask(features, image_size, mask_type="labels", **kwargs):
     annot_dict_all, image_size = load_features(features, image_size)
 
     annot_types = set(
-        annot_dict_all[k]["properties"]["label"] for k in annot_dict_all.keys()
+        annot_dict_all[k]["properties"].get("label", "default")
+        for k in annot_dict_all.keys()
     )
-    mask_dict = None
+    masks = None
     for annot_type in annot_types:
+        if label and label != "*" and annot_type != label:
+            continue
         # print("annot_type: ", annot_type)
         # Filter the annotations by label
         annot_dict = {
             k: annot_dict_all[k]
             for k in annot_dict_all.keys()
-            if annot_dict_all[k]["properties"]["label"] == annot_type
+            if label == "*"
+            or annot_dict_all[k]["properties"].get("label", "default") == annot_type
         }
         # Create masks
         # Binary - is always necessary to creat other masks
@@ -302,10 +306,15 @@ def features_to_mask(features, image_size, mask_type="labels", **kwargs):
             )
             mask_dict["border"] = border_mask
 
-    if mask_type == "labels":
-        return np.flipud(mask_dict["labels"])
-    elif mask_type == "border":
-        return np.flipud(mask_dict["border"])
+        if mask_type == "labels":
+            mask = np.flipud(mask_dict["labels"])
+        elif mask_type == "border":
+            mask = np.flipud(mask_dict["border"])
+        if label:
+            return mask
+        else:
+            masks[annot_type] = mask
+    return masks
 
 
 def _convert_mask(img_mask, label=None, mask_type="labels"):
