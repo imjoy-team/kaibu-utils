@@ -9,6 +9,7 @@ from PIL import Image, ImageDraw
 from skimage import draw as skimage_draw
 from skimage import measure, morphology
 from scipy import ndimage as ndi
+
 try:
     # scikit-image >= 0.19
     from skimage.segmentation import watershed
