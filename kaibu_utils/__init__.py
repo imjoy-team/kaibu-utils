@@ -9,7 +9,13 @@ from PIL import Image, ImageDraw
 from skimage import draw as skimage_draw
 from skimage import measure, morphology
 from scipy import ndimage as ndi
-from skimage.morphology import remove_small_objects, watershed
+try:
+    # scikit-image >= 0.19
+    from skimage.segmentation import watershed
+except ImportError:
+    from skimage.morphology import watershed
+
+from skimage.morphology import remove_small_objects
 
 try:
     import pyodide
