@@ -419,7 +419,7 @@ async def fetch_image(url, name=None, grayscale=False, transpose=False, size=Non
         image = image.convert("L")
     if size:
         image = image.resize(size=size)
-    image = np.array(image).astype("float32")
+    image = np.array(image)
     if transpose:
         image = image.transpose(2, 0, 1)
     return image
