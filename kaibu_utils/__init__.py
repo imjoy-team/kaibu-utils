@@ -86,10 +86,10 @@ def generate_binary_masks(
 
     if save_indiv is True:
         mask_edge_indiv = np.zeros(
-            (image_size[0], image_size[1], len(annot_dict)), dtype=np.bool
+            (image_size[0], image_size[1], len(annot_dict)), dtype=bool
         )
         mask_fill_indiv = np.zeros(
-            (image_size[0], image_size[1], len(annot_dict)), dtype=np.bool
+            (image_size[0], image_size[1], len(annot_dict)), dtype=bool
         )
 
     # Image used to draw lines - for edge mask for freelines
