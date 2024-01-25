@@ -16,8 +16,7 @@ REQUIRES = [
     "Pillow",
     "geojson",
     "scikit-image",
-    "pyodide-http;platform_system!='Emscripten'",
-    "requests",
+    "pyodide-http;platform_system!='Emscripten'"
 ]
 
 setup(
